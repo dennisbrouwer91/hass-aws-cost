@@ -1,0 +1,33 @@
+service: aws-cost-to-hass
+# useDotenv: true
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: eu-west-3
+  iam:
+    role:
+      name: "aws-cost-to-hass-role"
+      statements:
+        # Allow functions to read AWS Cost info
+        - Effect: Allow
+          Action: 'ce:*'
+          Resource: '*'
+
+functions:
+  costHandler:
+    handler: handler.run
+    events:
+      # Invoke Lambda function every day
+      - schedule: rate(1 day)
+    environment:
+      HASS_WEBHOOK_URL: ${env:HASS_WEBHOOK_URL}
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+    pythonBin: python

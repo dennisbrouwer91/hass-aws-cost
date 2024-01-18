@@ -1,0 +1,38 @@
+name: Deploy AWS Cost to Hass
+on:
+  push
+env:
+  AWS_REGION: "eu-west-3"
+  HASS_WEBHOOK_URL: ${{ vars.HASS_WEBHOOK_URL}}
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::067627805357:role/GithubOIDC
+          role-session-name: github
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Git clone the repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - name: Install Plugin and Deploy
+        uses: serverless/github-action@v3.2
+        with:
+            args: -c "serverless plugin install --name serverless-python-requirements && serverless deploy --stage dev"
+            entrypoint: /bin/sh
