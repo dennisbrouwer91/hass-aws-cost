@@ -1,0 +1,27 @@
+blueprint:
+  name: AWS Cost input
+  description: Get current AWS costs in Home-Assistant
+  domain: automation
+  input:
+    number_sensor:
+      name: Cost number helper
+      description: This helper will host the current AWS cost
+      selector:
+        entity:
+          filter:
+            - domain: input_number
+    webhook_id:
+
+trigger:
+  - platform: webhook
+    allowed_methods:
+      - PUT
+    local_only: false
+    webhook_id: !input webhook_id
+
+action:
+  - service: input_number.set_value
+    data:
+      entity_id: !input number_sensor
+      value: "{{ trigger.json.Amount | round(3) }}"
+    enabled: true
