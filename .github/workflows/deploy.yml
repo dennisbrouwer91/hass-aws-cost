@@ -1,6 +1,9 @@
 name: Deploy AWS Cost to Hass
 on:
-  push
+  push:
+    paths:
+        - serverless.yml
+        - handler.py
 env:
   AWS_REGION: "eu-west-3"
   HASS_WEBHOOK_URL: ${{ vars.HASS_WEBHOOK_URL}}
